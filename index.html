@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R.E.P.O FLOWERPOT DASHBOARD</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #f1c573 0%, #f1c573 50%, #f1c573 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .title {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #D2691E;
+            text-shadow: 
+                3px 3px 0px #8B4513,
+                6px 6px 0px #654321,
+                9px 9px 10px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+            letter-spacing: 0.1em;
+            transform: perspective(500px) rotateX(15deg);
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            letter-spacing: 0.15em;
+        }
+        
+        .robot-container {
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .robot {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(145deg, #E74C3C, #C0392B);
+            border-radius: 50% 50% 20% 20%;
+            margin: 0 auto 20px;
+            position: relative;
+            box-shadow: 
+                inset -5px -5px 15px rgba(0, 0, 0, 0.3),
+                inset 5px 5px 15px rgba(255, 100, 100, 0.2),
+                0 8px 25px rgba(0, 0, 0, 0.3);
+            animation: float 3s ease-in-out infinite;
+            border: 2px solid #A93226;
+        }
+
+        .robot::before,
+        .robot::after {
+            display: none;
+        }
+
+        .robot-eye-left {
+            position: absolute;
+            top: 25px;
+            left: -5px;
+            width: 45px;
+            height: 45px;
+            background: #FFFFFF;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 0 2px #E8E8E8,
+                inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+                0 3px 8px rgba(0, 0, 0, 0.2);
+            animation: eyeBlink 6s ease-in-out infinite;
+        }
+
+        .robot-eye-right {
+            position: absolute;
+            top: 25px;
+            right: -5px;
+            width: 45px;
+            height: 45px;
+            background: #FFFFFF;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 0 2px #E8E8E8,
+                inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+                0 3px 8px rgba(0, 0, 0, 0.2);
+            animation: eyeBlink 6s ease-in-out infinite;
+        }
+
+        .robot-eye-left::after,
+        .robot-eye-right::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background: #2C3E50;
+            border-radius: 50%;
+            animation: pupilLook 8s ease-in-out infinite;
+        }
+
+        .robot-mouth {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: #2C3E50;
+            border-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .robot-arm-left,
+        .robot-arm-right {
+            display: none;
+        }
+
+        @keyframes eyeBlink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+
+        @keyframes pupilLook {
+            0%, 100% { transform: translate(-50%, -50%); }
+            25% { transform: translate(-40%, -50%); }
+            50% { transform: translate(-50%, -40%); }
+            75% { transform: translate(-60%, -50%); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 15px 20px;
+            margin: 15px 0;
+            background: linear-gradient(145deg, #D2691E, #B8860B);
+            color: #FFD700;
+            border: none;
+            border-radius: 15px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            box-shadow: 
+                0 8px 0 #8B4513,
+                0 12px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.1s ease;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .button:hover {
+            transform: translateY(2px);
+            box-shadow: 
+                0 6px 0 #8B4513,
+                0 10px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .button:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0 4px 0 #8B4513,
+                0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .button.primary {
+            font-size: 0.9rem;
+            padding: 12px 20px;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            gap: 20px;
+        }
+
+        .stat-circle {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .stat-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #8B4513;
+            box-shadow: 
+                inset -5px -5px 10px rgba(0, 0, 0, 0.3),
+                inset 5px 5px 10px rgba(139, 69, 19, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #32CD32 0deg,
+                #228B22 var(--progress-angle, 0deg),
+                transparent var(--progress-angle, 0deg)
+            );
+            transition: all 0.5s ease;
+        }
+
+        .stat-progress::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            background: #8B4513;
+            border-radius: 50%;
+            box-shadow: 
+                inset -3px -3px 8px rgba(0, 0, 0, 0.3),
+                inset 3px 3px 8px rgba(139, 69, 19, 0.3);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-label {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #8B4513;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+            white-space: nowrap;
+        }
+
+        .stat-circle:first-child .stat-progress {
+            background: conic-gradient(
+                from -90deg,
+                #FF6B35 0deg,
+                #FF8C42 var(--progress-angle, 0deg),
+                transparent var(--progress-angle, 0deg)
+            );
+        }
+
+        .stat-circle:last-child .stat-progress {
+            background: conic-gradient(
+                from -90deg,
+                #4ECDC4 0deg,
+                #45B7B8 var(--progress-angle, 0deg),
+                transparent var(--progress-angle, 0deg)
+            );
+        }
+        
+        @media (max-width: 480px) {
+            .title {
+                font-size: 3rem;
+            }
+            
+            .game-container {
+                padding: 20px;
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title glow">R.E.P.O IOT</h1>
+        <p class="subtitle">Interfaz de Riego</p>
+        
+        <div class="robot-container">
+            <div class="robot">
+                <div class="robot-eye-left"></div>
+                <div class="robot-eye-right"></div>
+                <div class="robot-mouth"></div>
+            </div>
+        </div>
+        
+        <!-- Botones en Español -->
+        <button class="button primary" onclick="toggleAutoWatering()">
+            Activar Riego Automático
+        </button>
+        
+        <button class="button" onclick="waterNow()">
+            Regar Ahora
+        </button>
+        
+        <div class="stats-container">
+            <div class="stat-circle">
+                <div class="stat-label">Humedad Suelo</div>
+                <div class="stat-bg">
+                    <div class="stat-progress"></div>
+                    <div class="stat-value">48%</div>
+                </div>
+            </div>
+            
+            <div class="stat-circle">
+                <div class="stat-label">Humedad Ambiente</div>
+                <div class="stat-bg">
+                    <div class="stat-progress"></div>
+                    <div class="stat-value">24%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoWateringEnabled = false;
+        
+        function toggleAutoWatering() {
+            autoWateringEnabled = !autoWateringEnabled;
+            const button = document.querySelector('.button.primary');
+            
+            if (autoWateringEnabled) {
+                button.textContent = 'Desactivar Riego Automático';
+                button.style.background = 'linear-gradient(145deg, #228B22, #32CD32)';
+                showNotification('¡Riego automático activado!');
+            } else {
+                button.textContent = 'Activar Riego Automático';
+                button.style.background = 'linear-gradient(145deg, #D2691E, #B8860B)';
+                showNotification('¡Riego automático desactivado!');
+            }
+        }
+        
+        function waterNow() {
+            showNotification('Regando plantas ahora...');
+            
+            // Animar el robot
+            const robot = document.querySelector('.robot');
+            robot.style.animation = 'none';
+            robot.style.transform = 'scale(1.1)';
+            
+            setTimeout(() => {
+                robot.style.transform = 'scale(1)';
+                robot.style.animation = 'float 3s ease-in-out infinite';
+            }, 200);
+            
+            // Actualizar estadísticas aleatoriamente
+            updateStats();
+        }
+
+        function updateStats() {
+            const stat1 = document.querySelector('.stat-circle:first-child .stat-value');
+            const stat2 = document.querySelector('.stat-circle:last-child .stat-value');
+            const progress1 = document.querySelector('.stat-circle:first-child .stat-progress');
+            const progress2 = document.querySelector('.stat-circle:last-child .stat-progress');
+            
+            const newValue1 = Math.min(100, parseInt(stat1.textContent) + Math.floor(Math.random() * 10));
+            const newValue2 = Math.min(100, parseInt(stat2.textContent) + Math.floor(Math.random() * 15));
+            
+            stat1.textContent = newValue1 + '%';
+            stat2.textContent = newValue2 + '%';
+            
+            // Calcular ángulos de progreso
+            const angle1 = (newValue1 / 100) * 360;
+            const angle2 = (newValue2 / 100) * 360;
+            
+            progress1.style.setProperty('--progress-angle', angle1 + 'deg');
+            progress2.style.setProperty('--progress-angle', angle2 + 'deg');
+        }
+
+        function initializeStats() {
+            const stat1 = document.querySelector('.stat-circle:first-child .stat-value');
+            const stat2 = document.querySelector('.stat-circle:last-child .stat-value');
+            const progress1 = document.querySelector('.stat-circle:first-child .stat-progress');
+            const progress2 = document.querySelector('.stat-circle:last-child .stat-progress');
+            
+            const value1 = parseInt(stat1.textContent);
+            const value2 = parseInt(stat2.textContent);
+            
+            const angle1 = (value1 / 100) * 360;
+            const angle2 = (value2 / 100) * 360;
+            
+            progress1.style.setProperty('--progress-angle', angle1 + 'deg');
+            progress2.style.setProperty('--progress-angle', angle2 + 'deg');
+        }
+
+        window.addEventListener('load', initializeStats);
+
+        // Obtener datos de sensor desde el ESP32
+        function getSensorData() {
+            fetch('http://<IP_DE_TU_ESP32>/getSensorData')
+                .then(response => response.json())
+                .then(data => {
+                    // Actualizar la humedad del suelo y ambiente en el dashboard
+                    document.querySelector('.stat-circle:first-child .stat-value').textContent = data.soilHumidity + '%';
+                    document.querySelector('.stat-circle:last-child .stat-value').textContent = data.airHumidity + '%';
+                    
+                    // Actualizar las barras de progreso
+                    const angle1 = (data.soilHumidity / 100) * 360;
+                    const angle2 = (data.airHumidity / 100) * 360;
+                    
+                    document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
+                    document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
+                })
+                .catch(error => console.log('Error al obtener datos:', error));
+        }
+
+        // Llamar la función cada 5 segundos para obtener los datos
+        setInterval(getSensorData, 5000);
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(145deg, #32CD32, #228B22);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                font-family: 'Orbitron', monospace;
+                font-weight: 700;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        setInterval(() => {
+            if (autoWateringEnabled) {
+                updateStats();
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
