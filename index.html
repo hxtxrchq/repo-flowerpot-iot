@@ -361,40 +361,6 @@
 
     <script>
     let autoWateringEnabled = false;
-
-    // Función para generar un token aleatorio
-    function generateToken() {
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let token = '';
-        for (let i = 0; i < 32; i++) {
-            token += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-        // Guardar el token en localStorage para persistencia entre sesiones
-        localStorage.setItem('authToken', token);
-        return token;
-    }
-
-    // Obtener el token almacenado o generar uno nuevo si no existe
-    let token = localStorage.getItem('authToken');
-    if (!token) {
-        token = generateToken();
-    }
-    console.log('Token:', token);  // Ver el token en la consola
-
-    function toggleAutoWatering() {
-        autoWateringEnabled = !autoWateringEnabled;
-        const button = document.querySelector('.button.primary');
-        
-        if (autoWateringEnabled) {
-            button.textContent = 'Desactivar Riego Automático';
-            button.style.background = 'linear-gradient(145deg, #228B22, #32CD32)';
-            showNotification('¡Riego automático activado!');
-        } else {
-            button.textContent = 'Activar Riego Automático';
-            button.style.background = 'linear-gradient(145deg, #D2691E, #B8860B)';
-            showNotification('¡Riego automático desactivado!');
-        }
-    }
     
     function waterNow() {
         showNotification('Regando plantas ahora...');
@@ -453,34 +419,7 @@
 
     // Función para obtener datos de los sensores con token
     function getSensorData() {
-        fetch('http://10.10.0.2/getSensorData', {  // Asegúrate de que esta IP sea la correcta en Wokwi
-            method: 'GET',
-            headers: {
-                'Authorization': token  // El token generado y guardado
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Unauthorized');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Actualizar los valores en tu página
-            document.querySelector('.stat-circle:first-child .stat-value').textContent = data.soilHumidity + '%';
-            document.querySelector('.stat-circle:last-child .stat-value').textContent = data.airHumidity + '%';
-            
-            // Actualizar los progresos
-            const angle1 = (data.soilHumidity / 100) * 360;
-            const angle2 = (data.airHumidity / 100) * 360;
-            
-            document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
-            document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
-        })
-        .catch(error => {
-            console.log('Error al obtener datos:', error);
-            alert('No autorizado o error en la conexión');
-        });
+        
     }
 
     // Llamar a la función cada 5 segundos para actualizar los datos
