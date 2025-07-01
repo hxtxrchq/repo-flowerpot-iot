@@ -320,7 +320,7 @@
 </head>
 <body>
     <div class="game-container">
-        <h1 class="title glow">R.E.P.O IOT</h1>
+        <h1 class="title glow">R.E.P.O IOTa</h1>
         <p class="subtitle">Interfaz de Riego</p>
         
         <div class="robot-container">
@@ -432,25 +432,31 @@
 
         window.addEventListener('load', initializeStats);
 
-        // Obtener datos de sensor desde el ESP32
-        function getSensorData() {
-            fetch('http://10.10.0.2/getSensorData')
-    .then(response => response.json())
-    .then(data => {
-        // Actualizar los valores en tu página
-        document.querySelector('.stat-circle:first-child .stat-value').textContent = data.soilHumidity + '%';
-        document.querySelector('.stat-circle:last-child .stat-value').textContent = data.airHumidity + '%';
-        
-        // Actualizar los progresos
-        const angle1 = (data.soilHumidity / 100) * 360;
-        const angle2 = (data.airHumidity / 100) * 360;
-        
-        document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
-        document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
-    })
-    .catch(error => console.log('Error al obtener datos:', error));
+        // Función para obtener datos de los sensores
+function getSensorData() {
+    fetch('http://10.10.0.2/getSensorData')
+        .then(response => response.json())
+        .then(data => {
+            // Actualizar el valor de la humedad del suelo y aire en el dashboard
+            document.querySelector('.stat-circle:first-child .stat-value').textContent = data.soilHumidity + '%';
+            document.querySelector('.stat-circle:last-child .stat-value').textContent = data.airHumidity + '%';
+            
+            // Actualizar las barras de progreso
+            const angle1 = (data.soilHumidity / 100) * 360;
+            const angle2 = (data.airHumidity / 100) * 360;
+            
+            document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
+            document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
+        })
+        .catch(error => console.log('Error al obtener datos:', error));
+}
 
-        }
+// Llamar a la función cada 5 segundos para actualizar los datos
+setInterval(getSensorData, 5000);
+
+// Ejecutar la función inmediatamente cuando la página cargue
+getSensorData();
+
 
         // Llamar la función cada 5 segundos para obtener los datos
         setInterval(getSensorData, 5000);
