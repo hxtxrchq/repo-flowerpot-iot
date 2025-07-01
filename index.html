@@ -359,108 +359,103 @@
         </div>
     </div>
 
-    
-
     <script>
-        // Define la URL de tu backend en Render
-        const backendUrl = 'https://backend-iot-k8dw.onrender.com/getSensorData';
+    let autoWateringEnabled = false;
 
-        // Función para obtener datos de los sensores
-        function getSensorData() {
-            fetch(backendUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    soilHumidity: 48,  // Simulación de humedad del suelo
-                    airHumidity: 24    // Simulación de humedad del aire
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Datos recibidos:', data);
-                // Actualiza los valores en la interfaz
-                document.getElementById('soilHumidity').textContent = data.soilHumidity + '%';
-                document.getElementById('airHumidity').textContent = data.airHumidity + '%';
-                
-                // Actualiza las barras de progreso
-                updateProgressBar('soilHumidity', data.soilHumidity);
-                updateProgressBar('airHumidity', data.airHumidity);
-            })
-            .catch(error => {
-                console.error('Error al obtener datos:', error);
-                showNotification('Error al obtener los datos del sensor');
-            });
+// Función para obtener datos de los sensores
+function getSensorData() {
+    fetch('https://backend-iot-k8dw.onrender.com/getSensorData', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
         }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Datos recibidos:', data);
 
-        function updateProgressBar(id, value) {
-            const progress = document.querySelector(`#${id}Progress`);
-            const angle = (value / 100) * 360;
-            progress.style.setProperty('--progress-angle', angle + 'deg');
+        // Verificar que los elementos existan antes de modificarlos
+        const stat1 = document.querySelector('.stat-circle:first-child .stat-value');
+        const stat2 = document.querySelector('.stat-circle:last-child .stat-value');
+
+        // Comprobar que los elementos no sean null
+        if (stat1 && stat2) {
+            stat1.textContent = data.soilHumidity + '%';
+            stat2.textContent = data.airHumidity + '%';
+
+            // Actualizar las barras de progreso
+            const angle1 = (data.soilHumidity / 100) * 360;
+            const angle2 = (data.airHumidity / 100) * 360;
+
+            document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
+            document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
         }
+    })
+    .catch(error => {
+        console.error('Error al obtener datos:', error);
+        showNotification('Error al obtener los datos del sensor');
+    });
+}
 
-        function waterNow() {
-            showNotification('Regando plantas ahora...');
-            
-            // Animar el robot
-            const robot = document.querySelector('.robot');
-            robot.style.animation = 'none';
-            robot.style.transform = 'scale(1.1)';
-            
-            setTimeout(() => {
-                robot.style.transform = 'scale(1)';
-                robot.style.animation = 'float 3s ease-in-out infinite';
-            }, 200);
-        }
+// Llamar la función inmediatamente cuando la página cargue
+window.onload = function() {
+    getSensorData();
+};
 
-        function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.textContent = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: linear-gradient(145deg, #32CD32, #228B22);
-                color: white;
-                padding: 15px 20px;
-                border-radius: 10px;
-                font-family: 'Orbitron', monospace;
-                font-weight: 700;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
-        }
+// Llamar la función cada 5 segundos para actualizar los datos
+setInterval(getSensorData, 5000);
 
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
+
+// Llamar la función inmediatamente cuando la página cargue
+window.onload = function() {
+    getSensorData();
+};
+
+// Llamar la función cada 5 segundos para actualizar los datos
+setInterval(getSensorData, 5000);
+    // Función para mostrar una notificación
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, #32CD32, #228B22);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
         `;
-        document.head.appendChild(style);
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
 
-        // Llamar la función para obtener datos
-        getSensorData();
-        setInterval(getSensorData, 5000); // Actualizar cada 5 segundos
-    </script>
-
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
 
 </body>
 </html>
