@@ -320,7 +320,7 @@
 </head>
 <body>
     <div class="game-container">
-        <h1 class="title glow">R.E.P.O IOTa</h1>
+        <h1 class="title glow">R.E.P.O IOT</h1>
         <p class="subtitle">Interfaz de Riego</p>
         
         <div class="robot-container">
@@ -360,154 +360,178 @@
     </div>
 
     <script>
-        let autoWateringEnabled = false;
+    let autoWateringEnabled = false;
+
+    // Función para generar un token aleatorio
+    function generateToken() {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let token = '';
+        for (let i = 0; i < 32; i++) {
+            token += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        // Guardar el token en localStorage para persistencia entre sesiones
+        localStorage.setItem('authToken', token);
+        return token;
+    }
+
+    // Obtener el token almacenado o generar uno nuevo si no existe
+    let token = localStorage.getItem('authToken');
+    if (!token) {
+        token = generateToken();
+    }
+    console.log('Token:', token);  // Ver el token en la consola
+
+    function toggleAutoWatering() {
+        autoWateringEnabled = !autoWateringEnabled;
+        const button = document.querySelector('.button.primary');
         
-        function toggleAutoWatering() {
-            autoWateringEnabled = !autoWateringEnabled;
-            const button = document.querySelector('.button.primary');
-            
-            if (autoWateringEnabled) {
-                button.textContent = 'Desactivar Riego Automático';
-                button.style.background = 'linear-gradient(145deg, #228B22, #32CD32)';
-                showNotification('¡Riego automático activado!');
-            } else {
-                button.textContent = 'Activar Riego Automático';
-                button.style.background = 'linear-gradient(145deg, #D2691E, #B8860B)';
-                showNotification('¡Riego automático desactivado!');
+        if (autoWateringEnabled) {
+            button.textContent = 'Desactivar Riego Automático';
+            button.style.background = 'linear-gradient(145deg, #228B22, #32CD32)';
+            showNotification('¡Riego automático activado!');
+        } else {
+            button.textContent = 'Activar Riego Automático';
+            button.style.background = 'linear-gradient(145deg, #D2691E, #B8860B)';
+            showNotification('¡Riego automático desactivado!');
+        }
+    }
+    
+    function waterNow() {
+        showNotification('Regando plantas ahora...');
+        
+        // Animar el robot
+        const robot = document.querySelector('.robot');
+        robot.style.animation = 'none';
+        robot.style.transform = 'scale(1.1)';
+        
+        setTimeout(() => {
+            robot.style.transform = 'scale(1)';
+            robot.style.animation = 'float 3s ease-in-out infinite';
+        }, 200);
+        
+        // Actualizar estadísticas aleatoriamente
+        updateStats();
+    }
+
+    function updateStats() {
+        const stat1 = document.querySelector('.stat-circle:first-child .stat-value');
+        const stat2 = document.querySelector('.stat-circle:last-child .stat-value');
+        const progress1 = document.querySelector('.stat-circle:first-child .stat-progress');
+        const progress2 = document.querySelector('.stat-circle:last-child .stat-progress');
+        
+        const newValue1 = Math.min(100, parseInt(stat1.textContent) + Math.floor(Math.random() * 10));
+        const newValue2 = Math.min(100, parseInt(stat2.textContent) + Math.floor(Math.random() * 15));
+        
+        stat1.textContent = newValue1 + '%';
+        stat2.textContent = newValue2 + '%';
+        
+        // Calcular ángulos de progreso
+        const angle1 = (newValue1 / 100) * 360;
+        const angle2 = (newValue2 / 100) * 360;
+        
+        progress1.style.setProperty('--progress-angle', angle1 + 'deg');
+        progress2.style.setProperty('--progress-angle', angle2 + 'deg');
+    }
+
+    function initializeStats() {
+        const stat1 = document.querySelector('.stat-circle:first-child .stat-value');
+        const stat2 = document.querySelector('.stat-circle:last-child .stat-value');
+        const progress1 = document.querySelector('.stat-circle:first-child .stat-progress');
+        const progress2 = document.querySelector('.stat-circle:last-child .stat-progress');
+        
+        const value1 = parseInt(stat1.textContent);
+        const value2 = parseInt(stat2.textContent);
+        
+        const angle1 = (value1 / 100) * 360;
+        const angle2 = (value2 / 100) * 360;
+        
+        progress1.style.setProperty('--progress-angle', angle1 + 'deg');
+        progress2.style.setProperty('--progress-angle', angle2 + 'deg');
+    }
+
+    window.addEventListener('load', initializeStats);
+
+    // Función para obtener datos de los sensores con token
+    function getSensorData() {
+        fetch('http://10.10.0.2/getSensorData', {  // Asegúrate de que esta IP sea la correcta en Wokwi
+            method: 'GET',
+            headers: {
+                'Authorization': token  // El token generado y guardado
             }
-        }
-        
-        function waterNow() {
-            showNotification('Regando plantas ahora...');
-            
-            // Animar el robot
-            const robot = document.querySelector('.robot');
-            robot.style.animation = 'none';
-            robot.style.transform = 'scale(1.1)';
-            
-            setTimeout(() => {
-                robot.style.transform = 'scale(1)';
-                robot.style.animation = 'float 3s ease-in-out infinite';
-            }, 200);
-            
-            // Actualizar estadísticas aleatoriamente
-            updateStats();
-        }
-
-        function updateStats() {
-            const stat1 = document.querySelector('.stat-circle:first-child .stat-value');
-            const stat2 = document.querySelector('.stat-circle:last-child .stat-value');
-            const progress1 = document.querySelector('.stat-circle:first-child .stat-progress');
-            const progress2 = document.querySelector('.stat-circle:last-child .stat-progress');
-            
-            const newValue1 = Math.min(100, parseInt(stat1.textContent) + Math.floor(Math.random() * 10));
-            const newValue2 = Math.min(100, parseInt(stat2.textContent) + Math.floor(Math.random() * 15));
-            
-            stat1.textContent = newValue1 + '%';
-            stat2.textContent = newValue2 + '%';
-            
-            // Calcular ángulos de progreso
-            const angle1 = (newValue1 / 100) * 360;
-            const angle2 = (newValue2 / 100) * 360;
-            
-            progress1.style.setProperty('--progress-angle', angle1 + 'deg');
-            progress2.style.setProperty('--progress-angle', angle2 + 'deg');
-        }
-
-        function initializeStats() {
-            const stat1 = document.querySelector('.stat-circle:first-child .stat-value');
-            const stat2 = document.querySelector('.stat-circle:last-child .stat-value');
-            const progress1 = document.querySelector('.stat-circle:first-child .stat-progress');
-            const progress2 = document.querySelector('.stat-circle:last-child .stat-progress');
-            
-            const value1 = parseInt(stat1.textContent);
-            const value2 = parseInt(stat2.textContent);
-            
-            const angle1 = (value1 / 100) * 360;
-            const angle2 = (value2 / 100) * 360;
-            
-            progress1.style.setProperty('--progress-angle', angle1 + 'deg');
-            progress2.style.setProperty('--progress-angle', angle2 + 'deg');
-        }
-
-        window.addEventListener('load', initializeStats);
-
-        // Función para obtener datos de los sensores
-function getSensorData() {
-    fetch('http://10.10.0.2/getSensorData')
-        .then(response => response.json())
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Unauthorized');
+            }
+            return response.json();
+        })
         .then(data => {
-            // Actualizar el valor de la humedad del suelo y aire en el dashboard
+            // Actualizar los valores en tu página
             document.querySelector('.stat-circle:first-child .stat-value').textContent = data.soilHumidity + '%';
             document.querySelector('.stat-circle:last-child .stat-value').textContent = data.airHumidity + '%';
             
-            // Actualizar las barras de progreso
+            // Actualizar los progresos
             const angle1 = (data.soilHumidity / 100) * 360;
             const angle2 = (data.airHumidity / 100) * 360;
             
             document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
             document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
         })
-        .catch(error => console.log('Error al obtener datos:', error));
-}
+        .catch(error => {
+            console.log('Error al obtener datos:', error);
+            alert('No autorizado o error en la conexión');
+        });
+    }
 
-// Llamar a la función cada 5 segundos para actualizar los datos
-setInterval(getSensorData, 5000);
+    // Llamar a la función cada 5 segundos para actualizar los datos
+    setInterval(getSensorData, 5000);
 
-// Ejecutar la función inmediatamente cuando la página cargue
-getSensorData();
+    // Ejecutar la función inmediatamente cuando la página cargue
+    getSensorData();
 
-
-        // Llamar la función cada 5 segundos para obtener los datos
-        setInterval(getSensorData, 5000);
-
-        function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.textContent = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: linear-gradient(145deg, #32CD32, #228B22);
-                color: white;
-                padding: 15px 20px;
-                border-radius: 10px;
-                font-family: 'Orbitron', monospace;
-                font-weight: 700;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
-        }
-
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, #32CD32, #228B22);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
         `;
-        document.head.appendChild(style);
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
 
-        setInterval(() => {
-            if (autoWateringEnabled) {
-                updateStats();
-            }
-        }, 5000);
-    </script>
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+
+
 </body>
 </html>
