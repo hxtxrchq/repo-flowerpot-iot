@@ -434,21 +434,22 @@
 
         // Obtener datos de sensor desde el ESP32
         function getSensorData() {
-            fetch('http://<IP_DE_TU_ESP32>/getSensorData')
-                .then(response => response.json())
-                .then(data => {
-                    // Actualizar la humedad del suelo y ambiente en el dashboard
-                    document.querySelector('.stat-circle:first-child .stat-value').textContent = data.soilHumidity + '%';
-                    document.querySelector('.stat-circle:last-child .stat-value').textContent = data.airHumidity + '%';
-                    
-                    // Actualizar las barras de progreso
-                    const angle1 = (data.soilHumidity / 100) * 360;
-                    const angle2 = (data.airHumidity / 100) * 360;
-                    
-                    document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
-                    document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
-                })
-                .catch(error => console.log('Error al obtener datos:', error));
+            fetch('http://10.10.0.2/getSensorData')
+    .then(response => response.json())
+    .then(data => {
+        // Actualizar los valores en tu página
+        document.querySelector('.stat-circle:first-child .stat-value').textContent = data.soilHumidity + '%';
+        document.querySelector('.stat-circle:last-child .stat-value').textContent = data.airHumidity + '%';
+        
+        // Actualizar los progresos
+        const angle1 = (data.soilHumidity / 100) * 360;
+        const angle2 = (data.airHumidity / 100) * 360;
+        
+        document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
+        document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
+    })
+    .catch(error => console.log('Error al obtener datos:', error));
+
         }
 
         // Llamar la función cada 5 segundos para obtener los datos
