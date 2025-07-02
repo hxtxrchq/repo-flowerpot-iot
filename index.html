@@ -359,60 +359,94 @@
         </div>
     </div>
 
-    <script>
-    let autoWateringEnabled = false;
+  <script>
+    let autoWateringEnabled = false;  // Estado del riego automático
+    let waterNowActivated = false;    // Estado de "regar ahora"
+    let redLEDStatus = false;  // Estado del LED rojo (regar ahora)
+    let greenLEDStatus = false;  // Estado del LED verde (riego automático)
 
-// Función para obtener datos de los sensores
-function getSensorData() {
-    fetch('https://backend-iot-k8dw.onrender.com/getSensorData', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Datos recibidos:', data);
+    // Función para obtener datos de los sensores (GET)
+    function getSensorData() {
+        fetch('https://backend-iot-k8dw.onrender.com/getSensorData', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Datos de sensores recibidos:', data);
 
-        // Verificar que los elementos existan antes de modificarlos
-        const stat1 = document.querySelector('.stat-circle:first-child .stat-value');
-        const stat2 = document.querySelector('.stat-circle:last-child .stat-value');
+            // Verificar que los elementos existan antes de modificarlos
+            const stat1 = document.querySelector('.stat-circle:first-child .stat-value');
+            const stat2 = document.querySelector('.stat-circle:last-child .stat-value');
 
-        // Comprobar que los elementos no sean null
-        if (stat1 && stat2) {
-            stat1.textContent = data.soilHumidity + '%';
-            stat2.textContent = data.airHumidity + '%';
+            // Comprobar que los elementos no sean null
+            if (stat1 && stat2) {
+                stat1.textContent = data.soilHumidity + '%';
+                stat2.textContent = data.airHumidity + '%';
 
-            // Actualizar las barras de progreso
-            const angle1 = (data.soilHumidity / 100) * 360;
-            const angle2 = (data.airHumidity / 100) * 360;
+                // Actualizar las barras de progreso
+                const angle1 = (data.soilHumidity / 100) * 360;
+                const angle2 = (data.airHumidity / 100) * 360;
 
-            document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
-            document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
-        }
-    })
-    .catch(error => {
-        console.error('Error al obtener datos:', error);
-        showNotification('Error al obtener los datos del sensor');
-    });
-}
+                document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
+                document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
+            }
+        })
+        .catch(error => {
+            console.error('Error al obtener datos de los sensores:', error);
+            showNotification('Error al obtener los datos del sensor');
+        });
+    }
 
-// Llamar la función inmediatamente cuando la página cargue
-window.onload = function() {
-    getSensorData();
-};
+    // Llamar la función inmediatamente cuando la página cargue
+    window.onload = function() {
+        getSensorData();
+    };
 
-// Llamar la función cada 5 segundos para actualizar los datos
-setInterval(getSensorData, 5000);
+    // Llamar la función cada 5 segundos para actualizar los datos
+    setInterval(getSensorData, 5000);
 
+    // Función para manejar el botón de "activar/desactivar riego automático"
+    function toggleAutoWatering() {
+        greenLEDStatus = !greenLEDStatus;
+        sendControlData();  // Llamar a la función para enviar los datos al backend
+    }
 
-// Llamar la función inmediatamente cuando la página cargue
-window.onload = function() {
-    getSensorData();
-};
+    // Función para manejar el botón de "regar ahora"
+    function waterNow() {
+        redLEDStatus = true;  // Activar el LED rojo (encender)
+        sendControlData();  // Llamar a la función para enviar los datos al backend
+        
+        // Apagar el LED rojo automáticamente después de 5 segundos
+        setTimeout(() => {
+            redLEDStatus = false;
+            sendControlData();  // Actualizar el estado del LED
+        }, 5000);  // 5000 ms = 5 segundos
+    }
 
-// Llamar la función cada 5 segundos para actualizar los datos
-setInterval(getSensorData, 5000);
+    // Función para enviar los datos de control de los LEDs
+    function sendControlData() {
+        fetch('https://backend-iot-k8dw.onrender.com/controlLEDs', {
+            method: 'POST', // Asegúrate de usar POST aquí
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                redLED: redLEDStatus,   // Estado del LED rojo
+                greenLED: greenLEDStatus // Estado del LED verde
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Datos de LEDs actualizados:', data);
+        })
+        .catch(error => {
+            console.error('Error al controlar los LEDs:', error);
+        });
+    }
+
     // Función para mostrar una notificación
     function showNotification(message) {
         const notification = document.createElement('div');
@@ -431,9 +465,8 @@ setInterval(getSensorData, 5000);
             z-index: 1000;
             animation: slideIn 0.3s ease;
         `;
-        
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => {
@@ -448,7 +481,7 @@ setInterval(getSensorData, 5000);
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        
+
         @keyframes slideOut {
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(100%); opacity: 0; }
@@ -456,6 +489,8 @@ setInterval(getSensorData, 5000);
     `;
     document.head.appendChild(style);
 </script>
+
+
 
 </body>
 </html>
