@@ -416,15 +416,9 @@
 
     // Función para manejar el botón de "regar ahora"
     function waterNow() {
-        redLEDStatus = true;  // Activar el LED rojo (encender)
-        sendControlData();  // Llamar a la función para enviar los datos al backend
-        
-        // Apagar el LED rojo automáticamente después de 5 segundos
-        setTimeout(() => {
-            redLEDStatus = false;
-            sendControlData();  // Actualizar el estado del LED
-        }, 5000);  // 5000 ms = 5 segundos
-    }
+    redLEDStatus = true;  // Activar el LED rojo (encender)
+    sendControlData();  // Llamar a la función para enviar los datos al backend
+}
 
     // Función para enviar los datos de control de los LEDs
     function sendControlData() {
