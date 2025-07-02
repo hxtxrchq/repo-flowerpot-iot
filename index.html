@@ -342,10 +342,10 @@
         
         <div class="stats-container">
             <div class="stat-circle">
-                <div class="stat-label">Humedad Suelo</div>
+                <div class="stat-label">Temp de ambiente</div>
                 <div class="stat-bg">
                     <div class="stat-progress"></div>
-                    <div class="stat-value">48%</div>
+                    <div class="stat-value">48°</div>
                 </div>
             </div>
             
@@ -383,7 +383,7 @@
 
             // Comprobar que los elementos no sean null
             if (stat1 && stat2) {
-                stat1.textContent = data.soilHumidity + '%';
+                stat1.textContent = data.soilHumidity + '°';
                 stat2.textContent = data.airHumidity + '%';
 
                 // Actualizar las barras de progreso
