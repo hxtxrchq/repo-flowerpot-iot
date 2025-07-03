@@ -261,7 +261,7 @@
         }
 
         .stat-value {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 900;
             color: #FFD700;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -342,7 +342,7 @@
         
         <div class="stats-container">
             <div class="stat-circle">
-                <div class="stat-label">Temp de ambiente</div>
+                <div class="stat-label">Temperatura</div>
                 <div class="stat-bg">
                     <div class="stat-progress"></div>
                     <div class="stat-value">48°</div>
@@ -350,10 +350,20 @@
             </div>
             
             <div class="stat-circle">
-                <div class="stat-label">Humedad Ambiente</div>
+                <div class="stat-label">Humedad</div>
                 <div class="stat-bg">
                     <div class="stat-progress"></div>
                     <div class="stat-value">24%</div>
+                </div>
+            </div>
+            
+        </div>
+        <div class="stats-container">
+            <div class="stat-circle">
+                <div class="stat-label">Suelo</div>
+                <div class="stat-bg">
+                    <div class="stat-progress"></div>
+                    <div class="stat-value" id="soilState">Seco</div>
                 </div>
             </div>
         </div>
@@ -362,8 +372,6 @@
   <script>
     let autoWateringEnabled = false;  // Estado del riego automático
     let waterNowActivated = false;    // Estado de "regar ahora"
-    let redLEDStatus = false;  // Estado del LED rojo (regar ahora)
-    let greenLEDStatus = false;  // Estado del LED verde (riego automático)
 
     // Función para obtener datos de los sensores (GET)
     function getSensorData() {
@@ -380,19 +388,27 @@
             // Verificar que los elementos existan antes de modificarlos
             const stat1 = document.querySelector('.stat-circle:first-child .stat-value');
             const stat2 = document.querySelector('.stat-circle:last-child .stat-value');
+            const soilState = document.getElementById('soilState');
 
             // Comprobar que los elementos no sean null
             if (stat1 && stat2) {
-                stat1.textContent = data.soilHumidity + '°';
+                stat1.textContent = data.airTemperature + '°'; // Cambié la variable a airTemperature
                 stat2.textContent = data.airHumidity + '%';
 
                 // Actualizar las barras de progreso
-                const angle1 = (data.soilHumidity / 100) * 360;
+                const angle1 = (data.airTemperature / 100) * 360; // Cambié la variable a airTemperature
                 const angle2 = (data.airHumidity / 100) * 360;
 
                 document.querySelector('.stat-circle:first-child .stat-progress').style.setProperty('--progress-angle', angle1 + 'deg');
                 document.querySelector('.stat-circle:last-child .stat-progress').style.setProperty('--progress-angle', angle2 + 'deg');
             }
+
+            // Actualiza el estado del suelo
+            if (data.soilMoisture === 0) { // Si el sensor detecta "seco" (LOW)
+            soilState.textContent = "Humedo";
+        } else if (data.soilMoisture === 1) { // Si el sensor detecta "húmedo" (HIGH)
+            soilState.textContent = "Seco";
+        }
         })
         .catch(error => {
             console.error('Error al obtener datos de los sensores:', error);
@@ -410,41 +426,56 @@
 
     // Función para manejar el botón de "activar/desactivar riego automático"
     function toggleAutoWatering() {
-        greenLEDStatus = !greenLEDStatus;
-        sendControlData();  // Llamar a la función para enviar los datos al backend
+        // Alternar el estado del riego automático
+        if (autoWateringEnabled) {
+            // Si el riego automático está activado, desactivarlo
+            fetch('https://backend-iot-k8dw.onrender.com/controlAutoWatering', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ autoWatering: false })
+            })
+            .then(response => response.json())
+            .then(data => {
+                autoWateringEnabled = false;
+                console.log('Riego automático desactivado');
+                showNotification('Riego automático desactivado');
+            })
+            .catch(error => console.error('Error al desactivar el riego automático:', error));
+        } else {
+            // Si el riego automático está desactivado, activarlo
+            fetch('https://backend-iot-k8dw.onrender.com/controlAutoWatering', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ autoWatering: true })
+            })
+            .then(response => response.json())
+            .then(data => {
+                autoWateringEnabled = true;
+                console.log('Riego automático activado');
+                showNotification('Riego automático activado');
+            })
+            .catch(error => console.error('Error al activar el riego automático:', error));
+        }
     }
 
     // Función para manejar el botón de "regar ahora"
     function waterNow() {
-        redLEDStatus = true;  // Activar el LED rojo (encender)
-        sendControlData();  // Llamar a la función para enviar los datos al backend
-        
-        // Apagar el LED rojo automáticamente después de 5 segundos
-        setTimeout(() => {
-            redLEDStatus = false;
-            sendControlData();  // Actualizar el estado del LED
-        }, 15000);  // 5000 ms = 5 segundos
-    }
-
-    // Función para enviar los datos de control de los LEDs
-    function sendControlData() {
-        fetch('https://backend-iot-k8dw.onrender.com/controlLEDs', {
-            method: 'POST', // Asegúrate de usar POST aquí
+        fetch('https://backend-iot-k8dw.onrender.com/controlWaterNow', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                redLED: redLEDStatus,   // Estado del LED rojo
-                greenLED: greenLEDStatus // Estado del LED verde
-            })
+            }
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Datos de LEDs actualizados:', data);
+            console.log(data.message);
+            showNotification(data.message);
         })
-        .catch(error => {
-            console.error('Error al controlar los LEDs:', error);
-        });
+        .catch(error => console.error('Error al activar el riego manual:', error));
     }
 
     // Función para mostrar una notificación
@@ -490,6 +521,8 @@
     document.head.appendChild(style);
 </script>
 
+</body>
+</html>
 
 
 </body>
